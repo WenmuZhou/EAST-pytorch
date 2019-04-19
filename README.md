@@ -21,13 +21,13 @@ If you have no confidence of the result of our program, you could use submit.zip
 
 ### Performance
 + right -- green || wrong -- red || miss -- blue
-![visualization](https://github.com/songdejia/east-pytorch/blob/master/screenshots/vis01.png)
-![visualization](https://github.com/songdejia/east-pytorch/blob/master/screenshots/vis02.png)
+![visualization](img/screenshots/vis01.png)
+![visualization](img/screenshots/vis02.png)
 
 
 
 + recall/precision/hmean for every test image
-![hmean](https://github.com/songdejia/east-pytorch/blob/master/screenshots/hmean.png)
+![hmean](img/screenshots/hmean.png)
 
 ### Introduction
 This is a pytorch re-implementation of [EAST: An Efficient and Accurate Scene Text Detector](https://arxiv.org/abs/1704.03155v2).
@@ -105,10 +105,10 @@ If you want to use eval independently, you can do it by yourself. Any question c
 
 ### Examples
 Here are some test examples on icdar2015, enjoy the beautiful text boxes!
-![image_1](demo_images/img_2.jpg)
-![image_2](demo_images/img_10.jpg)
-![image_3](demo_images/img_14.jpg)
-![image_4](demo_images/img_26.jpg)
-![image_5](demo_images/img_75.jpg)
+![image_1](img/demo_images/img_2.jpg)
+![image_2](img/demo_images/img_10.jpg)
+![image_3](img/demo_images/img_14.jpg)
+![image_4](img/demo_images/img_26.jpg)
+![image_5](img/demo_images/img_75.jpg)
 
 

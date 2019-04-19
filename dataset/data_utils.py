@@ -14,6 +14,8 @@ import matplotlib.patches as Patches
 from shapely.geometry import Polygon
 from PIL import Image
 import warnings
+import glob
+import pathlib
 from geo_map_cython_lib import gen_geo_map
 
 
@@ -419,7 +421,8 @@ def point_dist_to_line(p1, p2, p3):
         distance = np.linalg.norm(np.cross(p2 - p1, p1 - p3)) /(np.linalg.norm(p2 - p1)+eps)
     
     except:
-        print('point dist to line raise Exception')
+        pass
+        # print('point dist to line raise Exception')
     
     return distance
 
@@ -436,10 +439,10 @@ def fit_line(p1, p2):
 def line_cross_point(line1, line2):
     # line1 0= ax+by+c, compute the cross point of line1 and line2
     if line1[0] != 0 and line1[0] == line2[0]:
-        print('Cross point does not exist')
+        # print('Cross point does not exist')
         return None
     if line1[0] == 0 and line2[0] == 0:
-        print('Cross point does not exist')
+        # print('Cross point does not exist')
         return None
     if line1[1] == 0:
         x = -line1[2]
@@ -780,10 +783,7 @@ def generate_rbox(im_size, polys, tags):
 
     return score_map, geo_map, training_mask
 
-def image_label(txt_root, 
-                image_list, img_name,
-                txt_list, txt_name,
-                index,
+def image_label(img_path,gt_path,
                 input_size = 512, 
                 random_scale = np.array([0.5, 1, 2.0, 3.0]),
                 background_ratio = 3./8):
@@ -797,8 +797,8 @@ def image_label(txt_root,
     '''
 
     try:
-        im_fn = image_list[index]
-        txt_fn = txt_list[index]
+        im_fn = img_path
+        txt_fn = gt_path
 
         im = cv2.imread(im_fn)
         # print im_fn
@@ -913,7 +913,7 @@ def image_label(txt_root,
             #print('done4')
     
     except Exception as e:
-        print('Exception continue')
+        # print('Exception continue')
         return None, None,None,None
 
     images = im[:, :, ::-1].astype(np.float32)
@@ -950,51 +950,25 @@ def transform_for_train(img):
     return transform(image)
 
 class custom_dset(data.Dataset):
-    def __init__(self, img_root, txt_root, vis = False):
-        
-        self.img_path_list, self.img_name_list = get_images(img_root)
-        
-        self.txt_root = txt_root
-        
-        self.vis = vis
+    def __init__(self, data_dir, vis = False):
+        self.data_list = self.load_data(data_dir)
 
-        self._txt_name_list = [txt_name for txt_name in os.listdir(txt_root)]
-
-        self._txt_path_list = [os.path.join(txt_root, txt_name) for txt_name in os.listdir(txt_root)]
-        
-        self.txt_name_list = sorted(self._txt_name_list)
-        
-        self.txt_path_list = sorted(self._txt_path_list)
-
-
-        # check img_path_list, img_name_list, txt_root
-        for i in range(len(self.img_path_list)):
-            img_id = []
-            img_id.append(os.path.basename(self.img_path_list[i]).strip('.jpg'))
-            img_id.append(os.path.basename(self.txt_path_list[i]).strip('.txt'))
-            img_id.append(self.img_name_list[i].strip('.jpg'))
-            img_id.append(self.txt_name_list[i].strip('.txt'))
-            if (img_id[0] == img_id[1])&(img_id[2] == img_id[3])&(img_id[0] == img_id[2]):
-                continue
-            else:
-                print(img_id[0])
-                print(img_id[1])
-                print(img_id[2])
-                print(img_id[3])
-                sys.exit('img list and txt list is not matched')
-
+    def load_data(self, data_dir: str) -> list:
+        data_list = []
+        for x in glob.glob(data_dir + '/img/*.jpg', recursive=True):
+            d = pathlib.Path(x)
+            label_path = os.path.join(data_dir, 'gt', ('gt_' + str(d.stem) + '.txt'))
+            data_list.append((x,label_path))
+        return data_list
 
     def __getitem__(self, index):
         #transform = transform_for_train()
         status = True
         while status:
-            img, score_map, geo_map, training_mask = image_label(self.txt_root,
+            img_path,gt_path = self.data_list[index]
+            img, score_map, geo_map, training_mask = image_label(img_path,gt_path,
             
-                self.img_path_list, self.img_name_list,
-            
-                self.txt_path_list, self.txt_name_list,
-            
-                index, input_size = 512,
+                input_size = 512,
             
                 random_scale = np.array([0.5, 1.0, 2.0, 3.0]), background_ratio = 3./8)
         
@@ -1013,7 +987,6 @@ class custom_dset(data.Dataset):
             else:
 
                 index = np.random.random_integers(0, self.__len__())
-                print('Exception in getitem, and choose another index:{}'.format(index))
 
 
 
@@ -1026,7 +999,7 @@ class custom_dset(data.Dataset):
         
 
     def __len__(self):
-        return len(self.img_path_list)
+        return len(self.data_list)
 
 def collate_fn(batch):
     img, score_map, geo_map, training_mask = zip(*batch)#tuple

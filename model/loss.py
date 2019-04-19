@@ -22,9 +22,9 @@ def dice_coefficient(y_true_cls, y_pred_cls,
 
     return loss
 
-class LossFunc(nn.Module):
+class EastLoss(nn.Module):
     def __init__(self):
-        super(LossFunc, self).__init__()
+        super(EastLoss, self).__init__()
         return 
     
     def forward(self, y_true_cls, y_pred_cls, y_true_geo, y_pred_geo, training_mask):
